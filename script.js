@@ -128,9 +128,12 @@ function calculateCost() {
 
   // --- 4. Cover Check ---
   // สูตรใหม่: ปัดเศษทีละ 0.2 รีม
-  const cvSheets = Math.ceil((qty * 1.05) / cvDiv);
+  const cvActualSheets = qty / cvDiv; // ใช้จริง (ไม่เผื่อเสีย)
+  const cvActualReams = cvActualSheets / 500;
+  const cvSheets = Math.ceil((qty * 1.05) / cvDiv); // เผื่อเสีย 5%
   const cvReamsRaw = cvSheets / 500;
   const cvReams = Math.ceil(cvReamsRaw * 5) / 5; // ปัดขึ้นทีละ 0.2
+  const cvSpareReams = cvReams - cvActualReams; // ส่วนเผื่อเสีย+ปัดเศษ
 
   const costCvPaper = cvReams * getPaperPrice(coverPaper, size);
 
@@ -169,12 +172,17 @@ function calculateCost() {
     const mrReamsRaw = mrSheets / 500;
 
     const inSheetsReq = (set.pages * qty) / inPaperDiv;
+    const actualReams = inSheetsReq / 500; // ใช้จริง (ไม่เผื่อเสีย)
     const inSheetsTotal = Math.ceil(inSheetsReq * 1.03); // Spare 3%
     const prodReamsRaw = inSheetsTotal / 500;
 
-    // รวมยอดดิบ แล้วปัดเศษทีละ 0.5 รีม
+    // รวมยอดดิบ แล้วปัดเศษตามขนาดห่อกระดาษ
+    // ปอนด์/ถนอมสายตา = ห่อละ 1.0 รีม, อาร์ต = ห่อละ 0.5 รีม
     const totalRawReams = mrReamsRaw + prodReamsRaw;
-    const sectionReams = Math.ceil(totalRawReams * 2) / 2;
+    const isArt = set.paper.includes("อาร์ต");
+    const packSize = isArt ? 0.5 : 1.0;
+    const sectionReams = Math.ceil(totalRawReams / packSize) * packSize;
+    const spareReams = sectionReams - actualReams; // ส่วนเผื่อเสีย+ตั้งเครื่อง+ปัดเศษ
 
     const sectionPaperCost = sectionReams * getPaperPrice(set.paper, size);
 
@@ -184,10 +192,15 @@ function calculateCost() {
     if (set.color.includes("4 สี") || set.color.includes("CMYK")) inColors = 4;
     else if (set.color.includes("2 สี")) inColors = 2;
 
-    const sectionPlateCost = (numSignatures * inColors) * CONSTANTS.PRICE_PLATE;
+    // เพลท: คำนวณจากจำนวนหน้าต่อด้าน (signatureDiv/2)
+    // ทุกสีใช้สูตรเดียวกัน: จำนวนหน้า ÷ หน้าต่อด้าน = จำนวนชุดเพลท
+    const pagesPerForme = Math.floor(signatureDiv / 2);
+    const numFormes = Math.ceil(set.pages / pagesPerForme);
+
+    const sectionPlateCost = (numFormes * inColors) * CONSTANTS.PRICE_PLATE;
 
     // 5.4 ค่าพิมพ์
-    const totalMakeReady = numSignatures * inColors * CONSTANTS.PRICE_MAKE_READY;
+    const totalMakeReady = numFormes * inColors * CONSTANTS.PRICE_MAKE_READY;
     const inImpressions = qty * (set.pages / signatureDiv);
     const totalRun = (inImpressions * inColors * CONSTANTS.PRICE_RUN_PER_1000) / 1000;
     const sectionPrintCost = totalMakeReady + totalRun;
@@ -197,11 +210,13 @@ function calculateCost() {
       setIndex: index + 1,
       paper: set.paper,
       pages: set.pages,
+      actualReams,
+      spareReams,
       reams: sectionReams,
       paperCost: sectionPaperCost,
-      numSignatures,
+      numFormes,
       inColors,
-      plateCount: numSignatures * inColors,
+      plateCount: numFormes * inColors,
       plateCost: sectionPlateCost
     });
 
@@ -215,7 +230,9 @@ function calculateCost() {
   const totalPaper = costCvPaper + totalInPaper;
   const totalPlate = costCvPlate + totalInPlate;
   const totalPrint = costCvPrint + totalInPrint;
-  const totalFinish = (finishUnitCost + bindUnitCost) * qty;
+  const costCoating = finishUnitCost * qty;
+  const costBinding = bindUnitCost * qty;
+  const totalFinish = costCoating + costBinding;
 
   const costTotal = totalPaper + totalPlate + totalPrint + totalFinish;
   const profit = costTotal * marginPct;
@@ -227,11 +244,12 @@ function calculateCost() {
   updateUI({
     size, grandTotalPages, qty,
     // Cover details
-    cvReams, cvReamsRaw, costCvPaper, cvPlates, cvColors, cvColorLabel,
+    cvActualReams, cvSpareReams, cvReams, costCvPaper, cvPlates, cvColors, cvColorLabel,
     // Inner details
     innerDetails, totalInReams, totalInPaper,
     // Totals
-    totalPaper, totalPlate, totalPrint, totalFinish,
+    totalPaper, totalPlate, totalPrint,
+    costCoating, costBinding, totalFinish,
     costTotal, profit, marginPct, vat, vatPct, grandTotal, pricePerBook
   });
 }
@@ -245,16 +263,19 @@ function updateUI(data) {
   let plateHTML = `<div class="detail-item">ปก: ${data.cvColorLabel} (${data.cvPlates} แผ่น)</div>`;
   data.innerDetails.forEach(d => {
     const colorLabel = d.inColors === 4 ? '4 สี' : d.inColors === 2 ? '2 สี' : '1 สี';
-    plateHTML += `<div class="detail-item">เนื้อใน ชุด ${d.setIndex}: ${colorLabel} × ${d.numSignatures} ยก = ${d.plateCount} แผ่น</div>`;
+    plateHTML += `<div class="detail-item">เนื้อใน ชุด ${d.setIndex}: ${colorLabel} × ${d.numFormes} ชุด = ${d.plateCount} แผ่น</div>`;
   });
   document.getElementById('res-plate-detail').innerHTML = plateHTML;
   document.getElementById('res-plate').textContent = fmt(data.totalPlate);
 
   // --- Paper Breakdown ---
   document.getElementById('res-paper').textContent = fmt(data.totalPaper);
-  let paperHTML = `<div class="detail-item">ปก: ${fmt(data.cvReams)} รีม (${fmt(data.costCvPaper)} ฿)</div>`;
+  let paperHTML = '';
+  paperHTML += `<div class="detail-item"><b>ปก: ${fmt(data.costCvPaper)} ฿</b></div>`;
+  paperHTML += `<div class="detail-item detail-sub">ใช้จริง ${fmt(data.cvActualReams)} + เผื่อ ${fmt(data.cvSpareReams)} = ${fmt(data.cvReams)} รีม</div>`;
   data.innerDetails.forEach(d => {
-    paperHTML += `<div class="detail-item">เนื้อใน ชุด ${d.setIndex}: ${fmt(d.reams)} รีม (${fmt(d.paperCost)} ฿)</div>`;
+    paperHTML += `<div class="detail-item"><b>เนื้อใน ชุด ${d.setIndex}: ${fmt(d.paperCost)} ฿</b></div>`;
+    paperHTML += `<div class="detail-item detail-sub">ใช้จริง ${fmt(d.actualReams)} + เผื่อ ${fmt(d.spareReams)} = ${fmt(d.reams)} รีม</div>`;
   });
   if (data.innerDetails.length === 0) {
     paperHTML += `<div class="detail-item">เนื้อใน: ไม่มี</div>`;
@@ -263,7 +284,8 @@ function updateUI(data) {
 
   // --- Other costs ---
   document.getElementById('res-print').textContent = fmt(data.totalPrint);
-  document.getElementById('res-finish').textContent = fmt(data.totalFinish);
+  document.getElementById('res-coating').textContent = fmt(data.costCoating);
+  document.getElementById('res-binding').textContent = fmt(data.costBinding);
 
   document.getElementById('res-cost-total').textContent = fmt(data.costTotal);
   document.getElementById('res-cost-per-book').textContent = fmt(data.costTotal / data.qty);

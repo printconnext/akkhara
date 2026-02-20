@@ -191,6 +191,12 @@ select:focus {
   line-height: 1.6;
 }
 
+.breakdown-detail .detail-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
 
 .quotation-card {
   background: #fff;
