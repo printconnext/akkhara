@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akkhara - คำนวณราคางานพิมพ์</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Akkhara (อักขระ) 🖨️</h1>
+        <p>โปรแกรมคำนวณราคางานพิมพ์ Offset/Digital (Ultimate Version)</p>
+    </header>
+
+    <div class="container">
+        <!-- Input Section -->
+        <main>
+            <!-- 1. General Info -->
+            <section class="card">
+                <div class="card-title">📝 1. ข้อมูลทั่วไป</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>จำนวนสั่งพิมพ์ (เล่ม)</label>
+                        <input type="number" id="qty" value="1000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>ขนาดสำเร็จ</label>
+                        <select id="size">
+                            <option value="A4">A4</option>
+                            <option value="A5">A5</option>
+                            <option value="A6">A6</option>
+                            <option value="B5" selected>B5</option>
+                            <option value="B6">B6</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Cover -->
+            <section class="card">
+                <div class="card-title">📘 2. ส่วนปก</div>
+                <div class="form-group">
+                    <label>กระดาษปก</label>
+                    <select id="coverPaper"></select> <!-- Populated by JS -->
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>พิมพ์กี่สี</label>
+                        <select id="coverColor">
+                            <option value="4 สี หน้าเดียว (4/0)" selected>4 สี หน้าเดียว (4/0)</option>
+                            <option value="4 สี สองหน้า (4/4)">4 สี สองหน้า (4/4)</option>
+                            <option value="2 สี หน้าเดียว (2/0)">2 สี หน้าเดียว (2/0)</option>
+                            <option value="2 สี สองหน้า (2/2)">2 สี สองหน้า (2/2)</option>
+                            <option value="1 สี หน้าเดียว (1/0)">1 สี หน้าเดียว (1/0)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>เคลือบปก</label>
+                        <select id="coverFinish">
+                            <option value="ไม่เคลือบ">ไม่เคลือบ</option>
+                            <option value="เคลือบ UV">เคลือบ UV</option>
+                            <option value="เคลือบ PVC ด้าน/เงา" selected>เคลือบ PVC ด้าน/เงา</option>
+                            <option value="เคลือบ Spot UV">เคลือบ Spot UV</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Inner (3 Sets) -->
+            <section class="card">
+                <div class="card-title">📄 3. ส่วนเนื้อใน (รองรับ 3 ชุด)</div>
+                
+                <!-- Set 1 -->
+                <div class="inner-section">
+                    <div class="inner-header">>> ชุดที่ 1 (หลัก)</div>
+                    <div class="form-group">
+                        <label>กระดาษ (1)</label>
+                        <select id="inner1Paper"></select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>จำนวนหน้า (1)</label>
+                            <input type="number" id="inner1Pages" value="224">
+                        </div>
+                        <div class="form-group">
+                            <label>พิมพ์กี่สี (1)</label>
+                            <select id="inner1Color">
+                                <option value="4 สี (CMYK)" selected>4 สี (CMYK)</option>
+                                <option value="2 สี">2 สี</option>
+                                <option value="1 สี (ดำ)">1 สี (ดำ)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Set 2 -->
+                <div class="inner-section">
+                    <div class="inner-header">>> ชุดที่ 2 (แทรกสี / อื่นๆ)</div>
+                    <div class="form-group">
+                        <label>กระดาษ (2)</label>
+                        <select id="inner2Paper"></select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>จำนวนหน้า (2)</label>
+                            <input type="number" id="inner2Pages" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>พิมพ์กี่สี (2)</label>
+                            <select id="inner2Color">
+                                <option value="4 สี (CMYK)">4 สี (CMYK)</option>
+                                <option value="2 สี">2 สี</option>
+                                <option value="1 สี (ดำ)">1 สี (ดำ)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Set 3 -->
+                <div class="inner-section">
+                    <div class="inner-header">>> ชุดที่ 3 (แทรกสี / อื่นๆ)</div>
+                    <div class="form-group">
+                        <label>กระดาษ (3)</label>
+                        <select id="inner3Paper"></select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>จำนวนหน้า (3)</label>
+                            <input type="number" id="inner3Pages" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>พิมพ์กี่สี (3)</label>
+                            <select id="inner3Color">
+                                <option value="4 สี (CMYK)">4 สี (CMYK)</option>
+                                <option value="2 สี">2 สี</option>
+                                <option value="1 สี (ดำ)">1 สี (ดำ)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Financials -->
+            <section class="card">
+                <div class="card-title">💰 4. การเงิน & เข้าเล่ม</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>วิธีเข้าเล่ม</label>
+                        <select id="bindType">
+                            <option value="ไสกาว" selected>ไสกาว (Perfect Bind)</option>
+                            <option value="เย็บมุงหลังคา">เย็บมุงหลังคา (Saddle Stitch)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Markup / กำไร (%)</label>
+                        <input type="number" id="marginPct" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>VAT (%)</label>
+                        <input type="number" id="vatPct" value="7">
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Result Sidebar -->
+        <aside class="results-sidebar">
+            <!-- Cost Breakdown -->
+            <div class="card result-card">
+                <div class="card-title">📊 สรุปต้นทุน</div>
+                
+                <div class="cost-row">
+                    <span>ค่ากระดาษ</span>
+                    <span id="res-paper">-</span>
+                </div>
+                <span class="sub-detail" id="res-paper-detail">...</span>
+                
+                <div class="cost-row" style="margin-top: 8px">
+                    <span>ค่าเพลท</span>
+                    <span id="res-plate">-</span>
+                </div>
+                <div class="cost-row">
+                    <span>ค่าพิมพ์</span>
+                    <span id="res-print">-</span>
+                </div>
+                <div class="cost-row">
+                    <span>ค่าหลังพิมพ์</span>
+                    <span id="res-finish">-</span>
+                </div>
+
+                <div class="cost-row total">
+                    <span>ต้นทุนรวม</span>
+                    <span id="res-cost-total">-</span>
+                </div>
+                <div class="sub-detail" style="text-align: right; color: rgba(255,255,255,0.7)">
+                    @ <span id="res-cost-per-book">0</span> /เล่ม
+                </div>
+            </div>
+
+            <!-- Quotation -->
+            <div class="card quotation-card">
+                <div class="card-title" style="color:var(--text-main); border-bottom-color:var(--border)">🏷️ ใบเสนอราคา</div>
+                
+                <div class="cost-row" style="color:var(--text-muted)">
+                    <span id="quo-profit-label">กำไร (30%)</span>
+                    <span id="quo-profit">-</span>
+                </div>
+                <div class="cost-row" style="color:var(--text-muted)">
+                    <span id="quo-vat-label">VAT (7%)</span>
+                    <span id="quo-vat">-</span>
+                </div>
+                
+                <div class="grand-total">
+                    <div class="grand-label">ราคาสุทธิ (Grand Total)</div>
+                    <div class="grand-value" id="quo-grand-total">0.00</div>
+                    <div style="font-size: 1.1rem; color: var(--text-main); font-weight: 600; margin-top: 5px;">
+                        เฉลี่ย <span id="quo-price-per-book" style="color:var(--accent);">0.00 บาท</span>
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                &copy; 2024 PrintConnext <br> Akkhara Calculation System
+            </footer>
+        </aside>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
