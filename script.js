@@ -11,10 +11,10 @@ const CONSTANTS = {
   // หมวด: ต้นทุนคงที่
   PRICE_PLATE: 500,        // ค่าเพลท (ต่อแผ่น)
   PRICE_MAKE_READY: 500,   // ค่าขึ้นแท่น (ต่อยก/สี)
-  
+
   // หมวด: กระดาษตั้งเครื่อง
   MR_PAPER_PER_SIG: 100,   // กระดาษตั้งเครื่อง (แผ่น/ยก)
-  
+
   // หมวด: ต้นทุนผันแปร
   PRICE_RUN_PER_1000: 150, // ค่ารันพิมพ์ (ต่อ 1,000 รอบ/สี)
 
@@ -64,14 +64,14 @@ const PAPER_NAMES = [...new Set(PAPER_DB.map(p => p.name))];
 
 function getPaperPrice(name, bookSize) {
   if (!name || name === "(ไม่ใส่/None)") return 0;
-  
+
   // Logic: ถ้าหนังสือไซส์ B (B5, B6) ให้ใช้กระดาษ 31x43, ถ้าไซส์ A (A4, A5) ให้ใช้ 24x35 หรือ 25x36
   const isSeriesB = bookSize.startsWith("B");
   const targetSheetSize = isSeriesB ? "31x43" : "24x35";
 
   // 1. Try exact match first
-  let paper = PAPER_DB.find(p => p.name === name && p.size.replace(/\s/g,'') === targetSheetSize);
-  
+  let paper = PAPER_DB.find(p => p.name === name && p.size.replace(/\s/g, '') === targetSheetSize);
+
   // 2. Fallback: ถ้าหาไม่เจอ ให้หาที่มีราคา > 0 (อันแรกที่เจอ)
   if (!paper) {
     paper = PAPER_DB.find(p => p.name === name && p.price > 0);
@@ -79,7 +79,7 @@ function getPaperPrice(name, bookSize) {
 
   // 3. Special case for Art Card 260g (25x36) if series A
   if (!paper && !isSeriesB && name.includes("260")) {
-      paper = PAPER_DB.find(p => p.name === name && p.size.includes("25x36"));
+    paper = PAPER_DB.find(p => p.name === name && p.size.includes("25x36"));
   }
 
   return paper ? paper.price : 0;
@@ -110,57 +110,59 @@ function calculateCost() {
 
   // 2. Logic Divisors
   let cvDiv = 0, inPaperDiv = 0, signatureDiv = 0;
-  
-  if (size === "A4") { cvDiv = 4; inPaperDiv = 16; signatureDiv = 8; } 
-  else if (size === "A5") { cvDiv = 8; inPaperDiv = 32; signatureDiv = 16; } 
+
+  if (size === "A4") { cvDiv = 4; inPaperDiv = 16; signatureDiv = 8; }
+  else if (size === "A5") { cvDiv = 8; inPaperDiv = 32; signatureDiv = 16; }
   else if (size === "A6") { cvDiv = 16; inPaperDiv = 64; signatureDiv = 32; }
-  else if (size === "B5") { cvDiv = 4; inPaperDiv = 32; signatureDiv = 8; } 
-  else if (size === "B6") { cvDiv = 16; inPaperDiv = 64; signatureDiv = 32; } 
+  else if (size === "B5") { cvDiv = 4; inPaperDiv = 32; signatureDiv = 8; }
+  else if (size === "B6") { cvDiv = 16; inPaperDiv = 64; signatureDiv = 32; }
   else { cvDiv = 4; inPaperDiv = 16; signatureDiv = 8; } // Default
 
   // 3. Finishing Costs
   let finishUnitCost = 0;
-  if (coverFinish.includes("UV")) finishUnitCost = CONSTANTS.FINISH_UV;      
-  if (coverFinish.includes("PVC")) finishUnitCost = CONSTANTS.FINISH_PVC;     
-  if (coverFinish.includes("Spot")) finishUnitCost = CONSTANTS.FINISH_SPOT_UV;   
-  
+  if (coverFinish.includes("UV")) finishUnitCost = CONSTANTS.FINISH_UV;
+  if (coverFinish.includes("PVC")) finishUnitCost = CONSTANTS.FINISH_PVC;
+  if (coverFinish.includes("Spot")) finishUnitCost = CONSTANTS.FINISH_SPOT_UV;
+
   let bindUnitCost = (bindType === "ไสกาว" ? CONSTANTS.BIND_PERFECT : CONSTANTS.BIND_SADDLE) + CONSTANTS.BIND_COLLATE;
 
   // --- 4. Cover Check ---
   // สูตรใหม่: ปัดเศษทีละ 0.2 รีม
-  const cvSheets = Math.ceil((qty * 1.05) / cvDiv); 
+  const cvSheets = Math.ceil((qty * 1.05) / cvDiv);
   const cvReamsRaw = cvSheets / 500;
   const cvReams = Math.ceil(cvReamsRaw * 5) / 5; // ปัดขึ้นทีละ 0.2
 
   const costCvPaper = cvReams * getPaperPrice(coverPaper, size);
 
   let cvPlates = 0, cvColors = 0;
-  if (coverColor.includes("4/0")) { cvPlates = 4; cvColors = 4; }
-  else if (coverColor.includes("4/4")) { cvPlates = 8; cvColors = 8; }
-  else if (coverColor.includes("2/0")) { cvPlates = 2; cvColors = 2; }
-  else if (coverColor.includes("2/2")) { cvPlates = 4; cvColors = 4; }
-  else { cvPlates = 1; cvColors = 1; }
-  
-  const costCvPlate = cvPlates * CONSTANTS.PRICE_PLATE; 
+  let cvColorLabel = '';
+  if (coverColor.includes("4/0")) { cvPlates = 4; cvColors = 4; cvColorLabel = '4 สี หน้าเดียว'; }
+  else if (coverColor.includes("4/4")) { cvPlates = 8; cvColors = 8; cvColorLabel = '4 สี สองหน้า'; }
+  else if (coverColor.includes("2/0")) { cvPlates = 2; cvColors = 2; cvColorLabel = '2 สี หน้าเดียว'; }
+  else if (coverColor.includes("2/2")) { cvPlates = 4; cvColors = 4; cvColorLabel = '2 สี สองหน้า'; }
+  else { cvPlates = 1; cvColors = 1; cvColorLabel = '1 สี'; }
+
+  const costCvPlate = cvPlates * CONSTANTS.PRICE_PLATE;
   const costCvPrint = (1 * cvColors * CONSTANTS.PRICE_MAKE_READY) + ((cvSheets * cvColors * CONSTANTS.PRICE_RUN_PER_1000) / 1000);
 
   // --- 5. Inner Loop ---
-  let totalInPaper = 0; 
-  let totalInPlate = 0; 
-  let totalInPrint = 0; 
-  let totalInReams = 0; 
+  let totalInPaper = 0;
+  let totalInPlate = 0;
+  let totalInPrint = 0;
+  let totalInReams = 0;
   let grandTotalPages = 0;
+  const innerDetails = []; // Track per-set details
 
   innerSets.forEach((set, index) => {
     if (set.paper === "(ไม่ใส่/None)" || !set.paper || set.pages === 0) return;
-    
+
     // Warning: Check signatures (Optional UI alert)
     // if (set.pages % 4 !== 0) console.warn(`Set ${index+1} pages not mod 4`);
 
     grandTotalPages += set.pages;
 
     // 5.1 จำนวนยก
-    const numSignatures = Math.ceil(set.pages / signatureDiv); 
+    const numSignatures = Math.ceil(set.pages / signatureDiv);
 
     // 5.2 คำนวณกระดาษรวม
     const mrSheets = numSignatures * CONSTANTS.MR_PAPER_PER_SIG;
@@ -181,14 +183,27 @@ function calculateCost() {
     // Check color logic
     if (set.color.includes("4 สี") || set.color.includes("CMYK")) inColors = 4;
     else if (set.color.includes("2 สี")) inColors = 2;
-    
+
     const sectionPlateCost = (numSignatures * inColors) * CONSTANTS.PRICE_PLATE;
 
     // 5.4 ค่าพิมพ์
     const totalMakeReady = numSignatures * inColors * CONSTANTS.PRICE_MAKE_READY;
-    const inImpressions = qty * (set.pages / signatureDiv); 
+    const inImpressions = qty * (set.pages / signatureDiv);
     const totalRun = (inImpressions * inColors * CONSTANTS.PRICE_RUN_PER_1000) / 1000;
     const sectionPrintCost = totalMakeReady + totalRun;
+
+    // Track per-set details
+    innerDetails.push({
+      setIndex: index + 1,
+      paper: set.paper,
+      pages: set.pages,
+      reams: sectionReams,
+      paperCost: sectionPaperCost,
+      numSignatures,
+      inColors,
+      plateCount: numSignatures * inColors,
+      plateCost: sectionPlateCost
+    });
 
     totalInPaper += sectionPaperCost;
     totalInPlate += sectionPlateCost;
@@ -199,7 +214,7 @@ function calculateCost() {
   // 6. Summary
   const totalPaper = costCvPaper + totalInPaper;
   const totalPlate = costCvPlate + totalInPlate;
-  const totalPrint = costCvPrint + totalInPrint; 
+  const totalPrint = costCvPrint + totalInPrint;
   const totalFinish = (finishUnitCost + bindUnitCost) * qty;
 
   const costTotal = totalPaper + totalPlate + totalPrint + totalFinish;
@@ -210,9 +225,13 @@ function calculateCost() {
 
   // 7. Render Config
   updateUI({
-    size, grandTotalPages,
-    totalPaper, cvReams, costCvPaper, totalInReams, totalInPaper,
-    totalPlate, totalPrint, totalFinish,
+    size, grandTotalPages, qty,
+    // Cover details
+    cvReams, cvReamsRaw, costCvPaper, cvPlates, cvColors, cvColorLabel,
+    // Inner details
+    innerDetails, totalInReams, totalInPaper,
+    // Totals
+    totalPaper, totalPlate, totalPrint, totalFinish,
     costTotal, profit, marginPct, vat, vatPct, grandTotal, pricePerBook
   });
 }
@@ -222,21 +241,37 @@ function updateUI(data) {
   const fmt = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt0 = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-  // Update Summary Card
-  document.getElementById('res-paper').textContent = fmt(data.totalPaper);
-  document.getElementById('res-paper-detail').textContent = `(ปก ${fmt(data.cvReams)} รีม / เนื้อ ${fmt(data.totalInReams)} รีม)`;
-  
+  // --- Plate Breakdown ---
+  let plateHTML = `<div class="detail-item">ปก: ${data.cvColorLabel} (${data.cvPlates} แผ่น)</div>`;
+  data.innerDetails.forEach(d => {
+    const colorLabel = d.inColors === 4 ? '4 สี' : d.inColors === 2 ? '2 สี' : '1 สี';
+    plateHTML += `<div class="detail-item">เนื้อใน ชุด ${d.setIndex}: ${colorLabel} × ${d.numSignatures} ยก = ${d.plateCount} แผ่น</div>`;
+  });
+  document.getElementById('res-plate-detail').innerHTML = plateHTML;
   document.getElementById('res-plate').textContent = fmt(data.totalPlate);
+
+  // --- Paper Breakdown ---
+  document.getElementById('res-paper').textContent = fmt(data.totalPaper);
+  let paperHTML = `<div class="detail-item">ปก: ${fmt(data.cvReams)} รีม (${fmt(data.costCvPaper)} ฿)</div>`;
+  data.innerDetails.forEach(d => {
+    paperHTML += `<div class="detail-item">เนื้อใน ชุด ${d.setIndex}: ${fmt(d.reams)} รีม (${fmt(d.paperCost)} ฿)</div>`;
+  });
+  if (data.innerDetails.length === 0) {
+    paperHTML += `<div class="detail-item">เนื้อใน: ไม่มี</div>`;
+  }
+  document.getElementById('res-paper-detail').innerHTML = paperHTML;
+
+  // --- Other costs ---
   document.getElementById('res-print').textContent = fmt(data.totalPrint);
   document.getElementById('res-finish').textContent = fmt(data.totalFinish);
-  
+
   document.getElementById('res-cost-total').textContent = fmt(data.costTotal);
-  document.getElementById('res-cost-per-book').textContent = fmt(data.costTotal / parseInt(document.getElementById('qty').value));
+  document.getElementById('res-cost-per-book').textContent = fmt(data.costTotal / data.qty);
 
   // Update Quotation Card
   document.getElementById('quo-profit').textContent = fmt(data.profit);
   document.getElementById('quo-profit-label').textContent = `กำไร (${(data.marginPct * 100).toFixed(0)}%)`;
-  
+
   document.getElementById('quo-vat').textContent = fmt(data.vat);
   document.getElementById('quo-vat-label').textContent = `VAT (${(data.vatPct * 100).toFixed(0)}%)`;
 
@@ -250,14 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Populate Paper Dropdowns
   const paperDropdowns = ['coverPaper', 'inner1Paper', 'inner2Paper', 'inner3Paper'];
   const allPapers = ["(ไม่ใส่/None)", ...PAPER_NAMES];
-  
+
   paperDropdowns.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    
+
     // Clear existing
     el.innerHTML = '';
-    
+
     allPapers.forEach(p => {
       const option = document.createElement('option');
       option.value = p;

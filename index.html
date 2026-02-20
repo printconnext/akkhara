@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akkhara - คำนวณราคางานพิมพ์</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <h1>Akkhara (อักขระ) 🖨️</h1>
@@ -72,7 +75,7 @@
             <!-- 3. Inner (3 Sets) -->
             <section class="card">
                 <div class="card-title">📄 3. ส่วนเนื้อใน (รองรับ 3 ชุด)</div>
-                
+
                 <!-- Set 1 -->
                 <div class="inner-section">
                     <div class="inner-header">>> ชุดที่ 1 (หลัก)</div>
@@ -171,17 +174,18 @@
             <!-- Cost Breakdown -->
             <div class="card result-card">
                 <div class="card-title">📊 สรุปต้นทุน</div>
-                
+
                 <div class="cost-row">
                     <span>ค่ากระดาษ</span>
                     <span id="res-paper">-</span>
                 </div>
-                <span class="sub-detail" id="res-paper-detail">...</span>
-                
+                <div class="breakdown-detail" id="res-paper-detail"></div>
+
                 <div class="cost-row" style="margin-top: 8px">
                     <span>ค่าเพลท</span>
                     <span id="res-plate">-</span>
                 </div>
+                <div class="breakdown-detail" id="res-plate-detail"></div>
                 <div class="cost-row">
                     <span>ค่าพิมพ์</span>
                     <span id="res-print">-</span>
@@ -202,8 +206,9 @@
 
             <!-- Quotation -->
             <div class="card quotation-card">
-                <div class="card-title" style="color:var(--text-main); border-bottom-color:var(--border)">🏷️ ใบเสนอราคา</div>
-                
+                <div class="card-title" style="color:var(--text-main); border-bottom-color:var(--border)">🏷️ ใบเสนอราคา
+                </div>
+
                 <div class="cost-row" style="color:var(--text-muted)">
                     <span id="quo-profit-label">กำไร (30%)</span>
                     <span id="quo-profit">-</span>
@@ -212,7 +217,7 @@
                     <span id="quo-vat-label">VAT (7%)</span>
                     <span id="quo-vat">-</span>
                 </div>
-                
+
                 <div class="grand-total">
                     <div class="grand-label">ราคาสุทธิ (Grand Total)</div>
                     <div class="grand-value" id="quo-grand-total">0.00</div>
@@ -221,7 +226,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <footer>
                 &copy; 2024 PrintConnext <br> Akkhara Calculation System
             </footer>
@@ -230,4 +235,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
