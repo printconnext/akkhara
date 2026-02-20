@@ -26,7 +26,13 @@ const CONSTANTS = {
   // หมวด: เข้าเล่ม
   BIND_PERFECT: 5.0,      // ไสกาว
   BIND_SADDLE: 2.0,       // เย็บมุงหลังคา
-  BIND_COLLATE: 5.0       // เก็บเล่ม
+  BIND_COLLATE: 5.0,      // เก็บเล่ม
+
+  // หมวด: ปั้มทอง
+  GOLD_DIE_A5: 1000,      // แม่พิมพ์ A5
+  GOLD_UNIT_A5: 3.0,      // ค่าปั้มทอง/เล่ม A5
+  GOLD_DIE_A4: 2000,      // แม่พิมพ์ A4
+  GOLD_UNIT_A4: 6.0       // ค่าปั้มทอง/เล่ม A4
 };
 
 // Paper Database
@@ -92,6 +98,7 @@ function calculateCost() {
   const coverPaper = document.getElementById('coverPaper').value;
   const coverColor = document.getElementById('coverColor').value;
   const coverFinish = document.getElementById('coverFinish').value;
+  const goldStamp = document.getElementById('goldStamp').value;
   const bindType = document.getElementById('bindType').value;
   const marginPct = parseFloat(document.getElementById('marginPct').value) / 100 || 0;
   const vatPct = parseFloat(document.getElementById('vatPct').value) / 100 || 0;
@@ -232,7 +239,16 @@ function calculateCost() {
   const totalPrint = costCvPrint + totalInPrint;
   const costCoating = finishUnitCost * qty;
   const costBinding = bindUnitCost * qty;
-  const totalFinish = costCoating + costBinding;
+
+  // ปั้มทอง
+  let costGoldStamp = 0;
+  if (goldStamp === 'A5') {
+    costGoldStamp = CONSTANTS.GOLD_DIE_A5 + (CONSTANTS.GOLD_UNIT_A5 * qty);
+  } else if (goldStamp === 'A4') {
+    costGoldStamp = CONSTANTS.GOLD_DIE_A4 + (CONSTANTS.GOLD_UNIT_A4 * qty);
+  }
+
+  const totalFinish = costCoating + costBinding + costGoldStamp;
 
   const costTotal = totalPaper + totalPlate + totalPrint + totalFinish;
   const profit = costTotal * marginPct;
@@ -249,7 +265,7 @@ function calculateCost() {
     innerDetails, totalInReams, totalInPaper,
     // Totals
     totalPaper, totalPlate, totalPrint,
-    costCoating, costBinding, totalFinish,
+    costCoating, costGoldStamp, costBinding, totalFinish,
     costTotal, profit, marginPct, vat, vatPct, grandTotal, pricePerBook
   });
 }
@@ -285,6 +301,7 @@ function updateUI(data) {
   // --- Other costs ---
   document.getElementById('res-print').textContent = fmt(data.totalPrint);
   document.getElementById('res-coating').textContent = fmt(data.costCoating);
+  document.getElementById('res-goldstamp').textContent = fmt(data.costGoldStamp);
   document.getElementById('res-binding').textContent = fmt(data.costBinding);
 
   document.getElementById('res-cost-total').textContent = fmt(data.costTotal);
